@@ -1,0 +1,8 @@
+# Define the goal
+string behavior # The goal is the behavior we wish to run
+---
+# Define the result
+string result
+---
+# Define a feedback message
+string current_status=Moving arm

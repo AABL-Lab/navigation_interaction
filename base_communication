@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/eventemitter2@6.4.9/lib/eventemitter2.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+
+<script type="text/javascript" type="text/javascript">
+  // Connecting to ROS
+  // -----------------
+
+  var ros = new ROSLIB.Ros({
+    url : 'ws://10.5.9.248:9090'
+  });
+
+  var ros2 = new ROSLIB.Ros({
+    url : 'ws://10.5.12.234:9090'
+  });
+
+  ros2.on('connection', function() {
+    console.log('Connected to side computer server.');
+  });
+
+  ros2.on('error', function(error) {
+    console.log('Error connecting to side computer server: ', error);
+  });
+
+  ros2.on('close', function() {
+    console.log('Connection to side computer server closed.');
+  });
+  
+  ros.on('connection', function() {
+    console.log('Connected to base computer server.');
+  });
+
+  ros.on('error', function(error) {
+    console.log('Error connecting to base computer server: ', error);
+  });
+
+  ros.on('close', function() {
+    console.log('Connection to base computer server closed.');
+  });
+
+
+  // Publishing a Topic
+  // ------------------
+
+
+  var publisher_base = new ROSLIB.Topic({
+    ros : ros,
+    name : '/publisher_based',
+    messageType : 'std_msgs/String'
+  });
+
+
+    var publisher_side = new ROSLIB.Topic({
+    ros : ros2,
+    name : '/publisher_side',
+    messageType : 'std_msgs/String'
+  });
+
+  var listener_side = new ROSLIB.Topic({
+    ros : ros2,
+    name : '/listener_side',
+    messageType : 'navigation_interaction/base_goal'
+  });
+  
+  var base_client = new ROSLIB.ActionClient({
+    ros : ros,
+    serverName : '/move_bridge',
+    actionName : 'fetch_base_communication/MoveBridgeAction'
+  });
+  
+
+  listener_side.subscribe(function(message) {
+    console.log('Received message on ' + listener_side.name);
+    var goal = new ROSLIB.Goal({
+      actionClient : base_client,
+      goalMessage : {
+        behavior : message.behavior,
+        location : message.location
+      }
+    });
+    
+    console.log(goal);
+    
+    goal.send();
+    
+    goal.on('result', function(result) {
+      var msg = new ROSLIB.Message({
+          data : 'Done'
+      });
+    
+      publisher_side.publish(msg);
+    });
+  });
+  
+</script>
+</head>
+
+<body>
+  <h1>Simple roslib Example</h1>
+  <p>Check your Web Console for output.</p>
+</body>
+</html>

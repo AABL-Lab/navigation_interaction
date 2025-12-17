@@ -1,0 +1,17 @@
+<launch>
+
+  <include file="$(find poli2_launch)/launch/machine1.launch" >
+    <arg name="start_manipulation" value="True" />
+  </include>
+  
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
+  
+  <!-- Node 1 -->
+  <node pkg="navigation_interaction" type="movearm_server.py" name="move_arm" />
+
+  <!-- Node 2 -->
+  <node pkg="sound_play" type="soundplay_node.py" name="soundplay_node" />
+
+  <!-- You can add more nodes as needed -->
+  <node pkg="sound" type="speech_rec.py" name="SpeechRecognizer" />
+</launch>
